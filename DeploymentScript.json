@@ -23,7 +23,8 @@
   },  
   "variables": {
     "STName": "[concat(parameters('Prefix'),'storage')]",
-    "IDName": "[concat(parameters('Prefix'),'ID-1')]"
+    "IDName": "[concat(parameters('Prefix'),'ID-1')]",
+    "DSName": "[concat(parameters('Prefix'),'DS-1')]"
   },
   "resources": [
     {
@@ -34,6 +35,10 @@
         "displayName": "[variables('STName')]"
       },
       "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "COPY-Storage",
+        "count": 1
+      },
       "kind": "StorageV2",
       "sku": {
         "name": "Standard_LRS",
@@ -54,7 +59,7 @@
     {
       "type": "Microsoft.resources/deploymentScripts",
       "apiVersion": "2020-10-01",
-      "name": "testDS",
+      "name": "[variables('DSName')]",
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "COPY-DeployScript",
@@ -80,7 +85,11 @@
           "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('STName')), '2020-08-01-preview').keys[0].value]"
         },
         "primaryScriptUri": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/Code/NewStorage.ps1"
-      }
+      },
+      "dependsOn": [
+        "COPY-Storage",
+        "COPY-ManagedID"
+      ]
     }   
   ],
   "outputs": {}
