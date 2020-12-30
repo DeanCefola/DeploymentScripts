@@ -1,0 +1,86 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "UserName": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure UserName"
+      }
+    },
+     "Password": {
+       "type": "securestring",
+       "metadata": {
+         "description": "Azure Password"
+       }
+     },
+     "Prefix": {
+       "type": "string",
+       "metadata": {
+         "description": "Prefix for Azure Resources"
+       }
+     }    
+  },  
+  "variables": {
+    "STName": "[concat(parameters('Prefix'),'storage')]"
+  },
+  "resources": [
+    {
+      "name": "[variables('STName')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2019-06-01",
+      "tags": {
+        "displayName": "[variables('STName')]"
+      },
+      "location": "[resourceGroup().location]",
+      "kind": "StorageV2",
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      }
+    },
+    {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2018-11-30",
+      "name": "dsID-1",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "COPY-ManagedID",
+        "count": 1
+      },
+      "comments": "Managed ID to change Azure Resources"      
+    },
+    {
+      "type": "Microsoft.resources/deploymentScripts",
+      "apiVersion": "2020-10-01",
+      "name": "testDS",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "COPY-DeployScript",
+        "count": 1
+      },
+      "kind": "AzurePowerShell",      
+      "identity": {
+        "type": "UserAssigned",
+        "userAssignedIdentities": {
+          "[resourceid('Microsoft.ManagedIdentity/userAssignedIdendities', 'dsID-1')]":{}
+        }
+      },
+      "properties": {
+        "azPowerShellVersion": "2.7",
+        "retentionInterval": "P1D",
+        "timeout": "PT15M",
+        "cleanupPreference": "OnSuccess",
+        "containerSettings": {
+          "containerGroupName": "dscontainer001"
+        },
+        "storageAccountSettings": {
+          "storageAccountName": "[variables('STName')]",          
+          "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('STName')), '2019-06-01').keys[0].value]"
+        },
+        "primaryScriptUri": ""
+      }
+    }   
+  ],
+  "outputs": {}
+}
