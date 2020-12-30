@@ -1,0 +1,50 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "UserName": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure UserName"
+      }
+    },
+     "Password": {
+       "type": "securestring",
+       "metadata": {
+         "description": "Azure Password"
+       }
+     },
+     "Prefix": {
+       "type": "string",
+       "metadata": {
+         "description": "Prefix for Azure Resources"
+       }
+     }    
+  },  
+  "variables": {
+    "STName": "[concat(parameters('Prefix'),'storage')]"
+  },
+  "resources": [
+    {
+      "name": "[variables('STName')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2020-08-01-preview",
+      "tags": {
+        "displayName": "[variables('STName')]"
+      },
+      "location": "[resourceGroup().location]",
+      "kind": "StorageV2",
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      }
+    }   
+  ],
+  "outputs": {
+      "StorageKey": {
+          "type": "string",
+          "value": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('STName')), '2020-08-01-preview').keys[0].value]"
+          
+      }
+  }
+}
