@@ -78,7 +78,7 @@
           "storageAccountName": "[variables('STName')]",          
           "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('STName')), '2019-06-01').keys[0].value]"
         },
-        "primaryScriptUri": ""
+        "primaryScriptUri": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/Code/NewStorage.ps1"
       }
     }   
   ],
