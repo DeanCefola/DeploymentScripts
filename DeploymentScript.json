@@ -24,7 +24,9 @@
   "variables": {
     "STName": "[concat(parameters('Prefix'),'storage')]",
     "IDName": "[concat(parameters('Prefix'),'ID-1')]",
-    "DSName": "[concat(parameters('Prefix'),'DS-1')]"
+    "DSName": "[concat(parameters('Prefix'),'DS-1')]",
+    "DSScript": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/Code/NewStorage.ps1",
+    "DSArgs": "[concat('-UserName ', parameters('UserName'), ' -PWD ', parameters('Password'), ' -Prefix ', parameters('Prefix'))]"
   },
   "resources": [
     {
@@ -69,22 +71,17 @@
       "identity": {
         "type": "UserAssigned",
         "userAssignedIdentities": {
-          "[resourceid('Microsoft.ManagedIdentity/userAssignedIdendities', variables('IDName'))]":{}
+          
+          "[resourceid('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName'))]":{}
         }
       },
       "properties": {
-        "azPowerShellVersion": "2.7",
-        "retentionInterval": "P1D",
+        "azPowerShellVersion": "2.7",        
         "timeout": "PT15M",
-        "cleanupPreference": "OnSuccess",
-        "containerSettings": {
-          "containerGroupName": "dscontainer001"
-        },
-        "storageAccountSettings": {
-          "storageAccountName": "[variables('STName')]",          
-          "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('STName')), '2020-08-01-preview').keys[0].value]"
-        },
-        "primaryScriptUri": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/Code/NewStorage.ps1"
+        "retentionInterval": "P1D",        
+        "cleanupPreference": "OnSuccess",        
+        "primaryScriptUri": "[variables('DSScript')]",
+        "arguments": "[variables('DSArgs')]"
       },
       "dependsOn": [
         "COPY-Storage",
@@ -92,5 +89,7 @@
       ]
     }   
   ],
-  "outputs": {}
+  "outputs": {
+    
+  }
 }
