@@ -1,19 +1,7 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
-  "parameters": {
-    "UserName": {
-      "type": "string",
-      "metadata": {
-        "description": "Azure UserName"
-      }
-    },
-     "Password": {
-       "type": "securestring",
-       "metadata": {
-         "description": "Azure Password"
-       }
-     },
+  "parameters": {    
      "Prefix": {
        "type": "string",
        "metadata": {
@@ -26,7 +14,7 @@
     "IDName": "[concat(parameters('Prefix'),'ID-1')]",
     "DSName": "[concat(parameters('Prefix'),'DS-1')]",
     "DSScript": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/Code/NewStorage.ps1",
-    "DSArgs": "[concat('-UserName ', parameters('UserName'), ' -PWD ', parameters('Password'), ' -Prefix ', parameters('Prefix'))]"
+    "DSArgs": "[concat('-Prefix ', parameters('Prefix'))]"
   },
   "resources": [
     {
@@ -70,8 +58,7 @@
       "kind": "AzurePowerShell",      
       "identity": {
         "type": "UserAssigned",
-        "userAssignedIdentities": {
-          
+        "userAssignedIdentities": {          
           "[resourceid('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName'))]":{}
         }
       },
