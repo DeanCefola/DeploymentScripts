@@ -11,9 +11,10 @@
   },  
   "variables": {
     "STName": "[concat(parameters('Prefix'),'storage')]",
-    "IDName4": "[concat(parameters('Prefix'),'ID-4')]",    
-    "DSName4": "[concat(parameters('Prefix'),'DS-4')]",      
-    "DSArgs4": "[concat('-Prefix ', parameters('Prefix'))]"  
+    "IDName": "[concat(parameters('Prefix'),'ID-4')]",    
+    "DSName4": "[concat(parameters('Prefix'),'DS-4')]",
+    "DSScript": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/Code/NewStorage.ps1",
+    "DSArgs": "[concat('-Prefix ', parameters('Prefix'))]"
   },
   "resources": [
     {
@@ -37,7 +38,7 @@
     {
       "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
       "apiVersion": "2018-11-30",
-      "name": "[variables('IDName4')]",
+      "name": "[variables('IDName')]",
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "COPY-ManagedID",
@@ -48,14 +49,10 @@
     {
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2018-09-01-preview",
-      "name": "[variables('IDName4')]",
-      "copy": {
-        "name": "COPY-IDRights",
-        "count": 1
-      },    
+      "name": "[variables('IDName')]",    
       "properties": {
           "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
-          "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName4')), '2015-08-31-preview').principalId]",
+          "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName')), '2015-08-31-preview').principalId]",
           "scope": "[resourceGroup().id]",
           "principalType": "ServicePrincipal"
       },
@@ -66,7 +63,7 @@
     {
       "type": "Microsoft.resources/deploymentScripts",
       "apiVersion": "2020-10-01",
-      "name": "[variables('DSName4')]",
+      "name": "[variables('DSName1')]",
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "COPY-DeployScript2",
@@ -76,7 +73,7 @@
       "identity": {
         "type": "UserAssigned",
         "userAssignedIdentities": {          
-          "[resourceid('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName4'))]":{}
+          "[resourceid('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName'))]":{}
         }
       },      
       "properties": {
@@ -88,10 +85,10 @@
           "storageAccountName": "[variables('STName')]",
           "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('STName')), '2019-06-01').keys[0].value]"
         }, 
-        "arguments": "[variables('DSArgs4')]",       
+        "arguments": "[variables('DSArgs')]",       
         "scriptContent":"
           Param ([Parameter(Mandatory=$true)][string]$Prefix)
-            $output = 'Hello World #4'
+            $output = $Prefix
             $DeploymentScriptOutputs = @{}
             $DeploymentScriptOutputs['text'] = $output            
             Write-Output $output
@@ -99,8 +96,7 @@
       },
       "dependsOn": [
         "COPY-Storage",
-        "COPY-ManagedID",
-        "COPY-IDRights"
+        "COPY-ManagedID"
       ]
     }   
   ],

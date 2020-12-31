@@ -11,9 +11,8 @@
   },  
   "variables": {
     "STName": "[concat(parameters('Prefix'),'storage')]",
-    "DSName3": "[concat(parameters('Prefix'),'DS-3')]",
-    
-    "DSArgs": "[concat('-Prefix ', parameters('Prefix'))]"
+    "DSName3": "[concat(parameters('Prefix'),'DS-3')]",    
+    "DSArgs3": "[concat('-Prefix ', parameters('Prefix'))]"
   },
   "resources": [
     {
@@ -49,17 +48,26 @@
         "timeout": "PT15M",
         "retentionInterval": "P1D",        
         "cleanupPreference": "OnSuccess",
+        "containerSettings": {
+          "containerGroupName": "deploymentScripts"
+        },
         "storageAccountSettings": {
           "storageAccountName": "[variables('STName')]",
           "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('STName')), '2019-06-01').keys[0].value]"
         }, 
-        "arguments": "[variables('DSArgs')]",    
+        "arguments": "[variables('DSArgs3')]",
+        "environmentVariables": [
+
+        ],    
         "scriptContent":"
-          Param ([Parameter(Mandatory=$true)][string]$Prefix)
-            $output = $Prefix
-            $DeploymentScriptOutputs = @{}
-            $DeploymentScriptOutputs['text'] = $output            
+          Param (
+            [Parameter(Mandatory=$true)]
+              [string]$Prefix
+          )
+            $output = 'Hello World - Azure Deployment Script'
             Write-Output $output
+            $DeploymentScriptOutputs = @{}
+            $DeploymentScriptOutputs['text'] = $output        
           "
       },
       "dependsOn": [
@@ -68,6 +76,9 @@
     }   
   ],
   "outputs": {
-    
+    "DS3-Output": {
+      "type": "string",
+      "value": "[reference(variables('DSName3')).outputs.text]"
+    }
   }
 }

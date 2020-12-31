@@ -12,8 +12,9 @@
   "variables": {
     "STName": "[concat(parameters('Prefix'),'storage')]",
     "IDName4": "[concat(parameters('Prefix'),'ID-4')]",    
-    "DSName4": "[concat(parameters('Prefix'),'DS-4')]",      
-    "DSArgs4": "[concat('-Prefix ', parameters('Prefix'))]"  
+    "DSName5": "[concat(parameters('Prefix'),'DS-5')]",
+    "DSScript5": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/Code/NewStorage.ps1",
+    "DSArgs5": "[concat('-Prefix ', parameters('Prefix'))]"
   },
   "resources": [
     {
@@ -48,11 +49,7 @@
     {
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2018-09-01-preview",
-      "name": "[variables('IDName4')]",
-      "copy": {
-        "name": "COPY-IDRights",
-        "count": 1
-      },    
+      "name": "[variables('IDName4')]",    
       "properties": {
           "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
           "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName4')), '2015-08-31-preview').principalId]",
@@ -66,7 +63,7 @@
     {
       "type": "Microsoft.resources/deploymentScripts",
       "apiVersion": "2020-10-01",
-      "name": "[variables('DSName4')]",
+      "name": "[variables('DSName5')]",
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "COPY-DeployScript2",
@@ -88,26 +85,19 @@
           "storageAccountName": "[variables('STName')]",
           "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('STName')), '2019-06-01').keys[0].value]"
         }, 
-        "arguments": "[variables('DSArgs4')]",       
-        "scriptContent":"
-          Param ([Parameter(Mandatory=$true)][string]$Prefix)
-            $output = 'Hello World #4'
-            $DeploymentScriptOutputs = @{}
-            $DeploymentScriptOutputs['text'] = $output            
-            Write-Output $output
-          "
+        "arguments": "[variables('DSArgs5')]",       
+        "primaryScriptUri": "[variables('DSScript5')]"
       },
       "dependsOn": [
         "COPY-Storage",
-        "COPY-ManagedID",
-        "COPY-IDRights"
+        "COPY-ManagedID"
       ]
     }   
   ],
   "outputs": {
-    "DS4-Output": {
+    "DS5-Output": {
       "type": "string",
-      "value": "[reference(variables('DSName4')).outputs.text]"
+      "value": "[reference(variables('DSName5')).outputs.text]"
     }
   }
 }
