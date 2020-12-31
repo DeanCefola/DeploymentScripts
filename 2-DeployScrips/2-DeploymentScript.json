@@ -10,12 +10,12 @@
      }    
   },  
   "variables": {
-    "STName": "[concat(parameters('Prefix'),'storage')]",
-    "IDName": "[concat(parameters('Prefix'),'ID-2')]",
-    "DSName1": "[concat(parameters('Prefix'),'DS-1')]",
-    "DSName2": "[concat(parameters('Prefix'),'DS-2')]",
-    "DSScript": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/Code/NewStorage.ps1",
-    "DSArgs": "[concat('-Prefix ', parameters('Prefix'))]"
+    "STName":   "[concat(parameters('Prefix'),'storage')]",
+    "IDName":   "[concat(parameters('Prefix'),'ID-2')]",
+    "DSName1":  "[concat(parameters('Prefix'),'DS-1')]",
+    "DSName2":  "[concat(parameters('Prefix'),'DS-2')]",    
+    "DSArgs":   "[concat('-Prefix ', parameters('Prefix'))]",
+    "DSScript": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/Code/NewStorage.ps1"
   },
   "resources": [
     {
@@ -110,6 +110,10 @@
     "STName": {
       "type": "string",
       "value": "[variables('STName')]"
+    },
+    "DSOutput": {
+      "type": "string",
+      "value": "[reference(variables('DSName1')).outputs.text]"
     }
   }
 }
