@@ -1,0 +1,49 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {    
+     "Prefix": {
+       "type": "string",
+       "metadata": {
+         "description": "Prefix for Azure Resources"
+       }
+     }    
+  },  
+  "variables": {    
+    "DSName": "[concat(parameters('Prefix'),'DS-1')]",       
+    "DSArgs": "[concat('-Prefix ', parameters('Prefix'))]"
+  },
+  "resources": [    
+    {
+      "type": "Microsoft.resources/deploymentScripts",
+      "apiVersion": "2020-10-01",
+      "name": "[variables('DSName')]",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "COPY-DeployScript2",
+        "count": 1
+      },
+      "kind": "AzurePowerShell",            
+      "properties": {
+        "azPowerShellVersion": "5.0",        
+        "timeout": "PT15M",
+        "retentionInterval": "P1D",        
+        "cleanupPreference": "OnSuccess", 
+        "arguments": "[variables('DSArgs')]",       
+        "scriptContent":"
+          Param ([Parameter(Mandatory=$true)][string]$Prefix)
+            $output = $Prefix
+            $DeploymentScriptOutputs = @{}
+            $DeploymentScriptOutputs['text'] = $output            
+            Write-Output $output
+          "
+      },
+      "dependsOn": [
+        
+      ]
+    }    
+  ],
+  "outputs": {
+    
+  }
+}

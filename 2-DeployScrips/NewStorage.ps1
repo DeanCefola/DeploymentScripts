@@ -16,17 +16,15 @@ Param (
     [Parameter(Mandatory=$true)]
         [string]$Prefix
 )
-
 begin {    
     
 }
-
 Process{
-    $STAccount = Get-AzStorageAccount -ResourceGroupName DeploymentScripts -Name $Prefix"storage"
+    $STAccount = Get-AzStorageAccount -ResourceGroupName DeploymentScripts -Name $Prefix
     New-AzStorageShare -Name testds00 -Context $STAccount.Context 
     Set-AzStorageShareQuota -Context $STAccount.Context -Quota 10 -ShareName testds00
 }
-
 End {
-    Write-Output -Verbose "Thanks for playing"
+    Write-Output $output
 }
+
