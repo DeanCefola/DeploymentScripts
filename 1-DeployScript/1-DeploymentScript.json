@@ -10,15 +10,14 @@
      }    
   },  
   "variables": {    
-    "DSName": "[concat(parameters('Prefix'),'DS-1')]",       
-    "DSArgs": "[concat('-Prefix ', parameters('Prefix'))]",
-    "DSArgs3": "[concat('-Prefix ', parameters('Prefix'), ' -DSName ', variables('DSName'), ' -Things ', 'thingy', ' -stuff ', 'stuffy')]"
+    "DSName1": "[concat(parameters('Prefix'),'DS-1')]",       
+    "DSArgs1": "[concat('-Prefix ', parameters('Prefix'))]"    
   },
   "resources": [    
     {
       "type": "Microsoft.resources/deploymentScripts",
       "apiVersion": "2020-10-01",
-      "name": "[variables('DSName')]",
+      "name": "[variables('DSName1')]",
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "COPY-DeployScript2",
@@ -30,98 +29,21 @@
         "timeout": "PT15M",
         "retentionInterval": "P1D",        
         "cleanupPreference": "OnSuccess", 
-        "arguments": "[variables('DSArgs')]",       
+        "arguments": "[variables('DSArgs1')]",       
         "scriptContent":"
-          Param ([Parameter(Mandatory=$true)][string]$Prefix)
-            $output = 'Hello this is a test'
-            $DeploymentScriptOutputs = @{}
-            $DeploymentScriptOutputs['text'] = $output
-          "
+          $output = 'Hello World - Azure Deployment Script'
+          Write-Output $output
+        "
       },
       "dependsOn": [
         
       ]    
-    },
-    {
-      "type": "Microsoft.Resources/deploymentScripts",
-      "apiVersion": "2020-10-01",
-      "name": "runPowerShellInline",
-      "location": "[resourceGroup().location]",
-      "kind": "AzurePowerShell",      
-      "properties": {
-        "forceUpdateTag": "1",            
-        "azPowerShellVersion": "3.0",
-        "supportingScriptUris":[],
-        "timeout": "PT30M",
-        "cleanupPreference": "OnSuccess",
-        "retentionInterval": "P1D",
-        "arguments": "-name \\\"John Dole\\\"",
-        "environmentVariables": [
-          {
-            "name": "UserName",
-            "value": "jdole"
-          },
-          {
-            "name": "Password",
-            "secureValue": "jDolePassword"
-          }
-        ],
-        "scriptContent": "
-          param([string] $name)
-          $output = 'Hello {0}. The username is {1}, the password is {2}.' -f $name,${Env:UserName},${Env:Password}
-          Write-Output $output
-          $DeploymentScriptOutputs = @{}
-          $DeploymentScriptOutputs['text'] = $output
-        "        
-      }
-    },
-    {
-      "type": "Microsoft.Resources/deploymentScripts",
-      "apiVersion": "2020-10-01",
-      "name": "PSScript",
-      "location": "[resourceGroup().location]",
-      "kind": "AzurePowerShell",      
-      "properties": {
-        "forceUpdateTag": "1",            
-        "azPowerShellVersion": "5.0",
-        "timeout": "PT15M",
-        "cleanupPreference": "OnExpiration",
-        "retentionInterval": "P1D",
-        "arguments": "[variables('DSArgs3')]",
-        "scriptContent": "
-          param (
-            [string] $Prefix,
-            [string] $DSName,
-            [string] $Things,
-            [string] $Stuff
-          )
-          Begin {            
-
-          }
-          Process {
-
-          }
-          End {
-            $output='test'
-            $DeploymentScriptOutputs = @{}
-            $DeploymentScriptOutputs['text'] = $output
-          }          
-        "        
-      }
-    }           
+    }        
   ],
   "outputs": {
-    "DSOutput-1": {
+    "DS-1Output": {
       "type": "string",
-      "value": "[reference(variables('DSName')).outputs.text]"
-    },
-    "DS-Inline": {
-      "type": "string",
-      "value": "[reference('runPowerShellInline').outputs.text]"
-    },
-    "PSScript": {
-      "type": "string",
-      "value": "[reference('PSScript').outputs.text]"
-    }        
+      "value": "[reference(variables('DSName1')).outputs.text]"
+    }    
   }  
 }
