@@ -1,0 +1,103 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {    
+     "Prefix": {
+       "type": "string",
+       "metadata": {
+         "description": "Prefix for Azure Resources"
+       }
+     }    
+  },  
+  "variables": {
+    "STName": "[concat(parameters('Prefix'),'storage')]",
+    "IDName4": "[concat(parameters('Prefix'),'ID-4')]",    
+    "DSName7": "[concat(parameters('Prefix'),'DS-7')]",
+    "DSScript7": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/Code/NewStorage.ps1",
+    "DSArgs5": "[concat('-Prefix ', parameters('Prefix'))]"
+  },
+  "resources": [
+    {
+      "name": "[variables('STName')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2020-08-01-preview",
+      "tags": {
+        "displayName": "[variables('STName')]"
+      },
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "COPY-Storage",
+        "count": 1
+      },
+      "kind": "StorageV2",
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      }
+    },
+    {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2018-11-30",
+      "name": "[variables('IDName4')]",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "COPY-ManagedID",
+        "count": 1
+      },
+      "comments": "Managed ID to change Azure Resources"      
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2018-09-01-preview",
+      "name": "[variables('IDName4')]",    
+      "properties": {
+          "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+          "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName4')), '2015-08-31-preview').principalId]",
+          "scope": "[resourceGroup().id]",
+          "principalType": "ServicePrincipal"
+      },
+      "dependsOn": [
+        "COPY-ManagedID"
+      ]
+    },
+    {
+      "type": "Microsoft.resources/deploymentScripts",
+      "apiVersion": "2020-10-01",
+      "name": "[variables('DSName7')]",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "COPY-DeployScript2",
+        "count": 1
+      },
+      "kind": "AzurePowerShell",
+      "identity": {
+        "type": "UserAssigned",
+        "userAssignedIdentities": {          
+          "[resourceid('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName4'))]":{}
+        }
+      },      
+      "properties": {
+        "azPowerShellVersion": "5.0",        
+        "timeout": "PT15M",
+        "retentionInterval": "P1D",        
+        "cleanupPreference": "OnSuccess", 
+        "storageAccountSettings": {
+          "storageAccountName": "[variables('STName')]",
+          "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('STName')), '2019-06-01').keys[0].value]"
+        }, 
+        "arguments": "[variables('DSArgs5')]",       
+        "primaryScriptUri": "[variables('DSScript7')]"
+      },
+      "dependsOn": [
+        "COPY-Storage",
+        "COPY-ManagedID"
+      ]
+    }   
+  ],
+  "outputs": {
+    "DS5-Output": {
+      "type": "string",
+      "value": "[reference(variables('DSName5')).outputs.text]"
+    }
+  }
+}
