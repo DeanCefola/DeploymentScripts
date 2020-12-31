@@ -23,8 +23,10 @@ Process{
     $STAccount = Get-AzStorageAccount -ResourceGroupName DeploymentScripts -Name $Prefix
     New-AzStorageShare -Name testds00 -Context $STAccount.Context 
     Set-AzStorageShareQuota -Context $STAccount.Context -Quota 10 -ShareName testds00
+    #$a = Get-AzStorageShare -Name testds00
+    
 }
 End {
-    Write-Output $output
+    #Write-Output $DSOutput
 }
 
