@@ -11,10 +11,8 @@
   },  
   "variables": {
     "STName": "[concat(parameters('Prefix'),'storage')]",
-    "IDName": "[concat(parameters('Prefix'),'ID-3')]",
-    "DSName1": "[concat(parameters('Prefix'),'DS-1')]",
-    "DSName2": "[concat(parameters('Prefix'),'DS-2')]",
-    "DSScript": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/Code/NewStorage.ps1",
+    "DSName3": "[concat(parameters('Prefix'),'DS-3')]",
+    
     "DSArgs": "[concat('-Prefix ', parameters('Prefix'))]"
   },
   "resources": [
@@ -37,20 +35,9 @@
       }
     },
     {
-      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
-      "apiVersion": "2018-11-30",
-      "name": "[variables('IDName')]",
-      "location": "[resourceGroup().location]",
-      "copy": {
-        "name": "COPY-ManagedID",
-        "count": 1
-      },
-      "comments": "Managed ID to change Azure Resources"      
-    },
-    {
       "type": "Microsoft.resources/deploymentScripts",
       "apiVersion": "2020-10-01",
-      "name": "[variables('DSName1')]",
+      "name": "[variables('DSName3')]",
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "COPY-DeployScript2",
@@ -61,8 +48,12 @@
         "azPowerShellVersion": "5.0",        
         "timeout": "PT15M",
         "retentionInterval": "P1D",        
-        "cleanupPreference": "OnSuccess", 
-        "arguments": "[variables('DSArgs')]",       
+        "cleanupPreference": "OnSuccess",
+        "storageAccountSettings": {
+          "storageAccountName": "[variables('STName')]",
+          "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('STName')), '2019-06-01').keys[0].value]"
+        }, 
+        "arguments": "[variables('DSArgs')]",    
         "scriptContent":"
           Param ([Parameter(Mandatory=$true)][string]$Prefix)
             $output = $Prefix
@@ -72,37 +63,7 @@
           "
       },
       "dependsOn": [
-        "COPY-Storage",
-        "COPY-ManagedID"
-      ]
-    },
-    {
-      "type": "Microsoft.resources/deploymentScripts",
-      "apiVersion": "2020-10-01",
-      "name": "[variables('DSName2')]",
-      "location": "[resourceGroup().location]",
-      "copy": {
-        "name": "COPY-DeployScript1",
-        "count": 1
-      },
-      "kind": "AzurePowerShell",      
-      "identity": {
-        "type": "UserAssigned",
-        "userAssignedIdentities": {          
-          "[resourceid('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName'))]":{}
-        }
-      },
-      "properties": {
-        "azPowerShellVersion": "5.0",        
-        "timeout": "PT15M",
-        "retentionInterval": "P1D",        
-        "cleanupPreference": "OnSuccess", 
-        "arguments": "[variables('DSArgs')]",       
-        "primaryScriptUri": "[variables('DSScript')]"
-      },
-      "dependsOn": [
-        "COPY-Storage",
-        "COPY-ManagedID"
+        "COPY-Storage"        
       ]
     }   
   ],
