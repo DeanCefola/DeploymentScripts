@@ -9,44 +9,12 @@
        }
      }    
   },  
-  "variables": {
-    "STName":   "[concat(parameters('Prefix'),'storage')]",
-    "IDName":   "[concat(parameters('Prefix'),'ID-2')]",
-    "DSName1":  "[concat(parameters('Prefix'),'DS-1')]",
+  "variables": {    
+    "DSName1":  "[concat(parameters('Prefix'),'DS-1')]",    
+    "DSArgs1":   "[concat('-Prefix ', parameters('Prefix'))]",
     "DSName2":  "[concat(parameters('Prefix'),'DS-2')]",    
-    "DSArgs":   "[concat('-Prefix ', parameters('Prefix'))]",
-    "DSScript": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/Code/NewStorage.ps1"
   },
   "resources": [
-    {
-      "name": "[variables('STName')]",
-      "type": "Microsoft.Storage/storageAccounts",
-      "apiVersion": "2020-08-01-preview",
-      "tags": {
-        "displayName": "[variables('STName')]"
-      },
-      "location": "[resourceGroup().location]",
-      "copy": {
-        "name": "COPY-Storage",
-        "count": 1
-      },
-      "kind": "StorageV2",
-      "sku": {
-        "name": "Standard_LRS",
-        "tier": "Standard"
-      }
-    },
-    {
-      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
-      "apiVersion": "2018-11-30",
-      "name": "[variables('IDName')]",
-      "location": "[resourceGroup().location]",
-      "copy": {
-        "name": "COPY-ManagedID",
-        "count": 1
-      },
-      "comments": "Managed ID to change Azure Resources"      
-    },
     {
       "type": "Microsoft.resources/deploymentScripts",
       "apiVersion": "2020-10-01",
@@ -62,58 +30,58 @@
         "timeout": "PT15M",
         "retentionInterval": "P1D",        
         "cleanupPreference": "OnSuccess", 
-        "arguments": "[variables('DSArgs')]",       
+        "arguments": "[variables('DSArgs1')]",       
         "scriptContent":"
-          Param ([Parameter(Mandatory=$true)][string]$Prefix)
-            $output = $Prefix
-            $DeploymentScriptOutputs = @{}
-            $DeploymentScriptOutputs['text'] = $output            
-            Write-Output $output
+          $output = 'Hello World - Azure Deployment Script'
+          Write-Output $output
           "
       },
       "dependsOn": [
-        "COPY-Storage",
-        "COPY-ManagedID"
-      ]
+        
+      ]    
     },
     {
-      "type": "Microsoft.resources/deploymentScripts",
+      "type": "Microsoft.Resources/deploymentScripts",
       "apiVersion": "2020-10-01",
       "name": "[variables('DSName2')]",
       "location": "[resourceGroup().location]",
-      "copy": {
-        "name": "COPY-DeployScript1",
-        "count": 1
-      },
       "kind": "AzurePowerShell",      
-      "identity": {
-        "type": "UserAssigned",
-        "userAssignedIdentities": {          
-          "[resourceid('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName'))]":{}
-        }
-      },
       "properties": {
-        "azPowerShellVersion": "5.0",        
-        "timeout": "PT15M",
-        "retentionInterval": "P1D",        
-        "cleanupPreference": "OnSuccess", 
-        "arguments": "[variables('DSArgs')]",       
-        "primaryScriptUri": "[variables('DSScript')]"
-      },
-      "dependsOn": [
-        "COPY-Storage",
-        "COPY-ManagedID"
-      ]
-    }   
-  ],
-  "outputs": {
-    "STName": {
-      "type": "string",
-      "value": "[variables('STName')]"
+        "forceUpdateTag": "1",            
+        "azPowerShellVersion": "3.0",
+        "supportingScriptUris":[],
+        "timeout": "PT30M",
+        "cleanupPreference": "OnSuccess",
+        "retentionInterval": "P1D",
+        "arguments": "-name \\\"John Dole\\\"",
+        "environmentVariables": [
+          {
+            "name": "UserName",
+            "value": "jdole"
+          },
+          {
+            "name": "Password",
+            "secureValue": "jDolePassword"
+          }
+        ],
+        "scriptContent": "
+          param([string] $name)
+          $output = 'Hello {0}. The username is {1}, the password is {2}.' -f $name,${Env:UserName},${Env:Password}
+          Write-Output $output
+          $DeploymentScriptOutputs = @{}
+          $DeploymentScriptOutputs['text'] = $output
+        "        
+      }
     },
-    "DSOutput": {
+  ],
+  "outputs": {    
+    "DS1-Output": {
       "type": "string",
       "value": "[reference(variables('DSName1')).outputs.text]"
+    },
+    "DS2-Output": {
+      "type": "string",
+      "value": "[reference(variables('DSName2')).outputs.text]"
     }
   }
 }
