@@ -12,9 +12,10 @@
   "variables": {
     "STName": "[concat(parameters('Prefix'),'storage')]",
     "IDName4": "[concat(parameters('Prefix'),'ID-4')]",    
-    "DSName5": "[concat(parameters('Prefix'),'DS-5')]",
-    "DSScript5": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/Code/NewStorage.ps1",
-    "DSArgs5": "[concat('-Prefix ', parameters('Prefix'))]"
+    "DSName5": "[concat(parameters('Prefix'),'DS-5')]",    
+    "DSArgs5": "[concat('-Prefix ', parameters('Prefix'))]",
+    "roleAssignmentName": "[guid(concat(resourceGroup().id, 'contributor'))]",
+    "DSScript5": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/Code/NewStorage.ps1"
   },
   "resources": [
     {
@@ -49,7 +50,7 @@
     {
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2018-09-01-preview",
-      "name": "[variables('IDName4')]",    
+      "name": "[variables('roleAssignmentName')]",    
       "properties": {
           "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
           "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName4')), '2015-08-31-preview').principalId]",
