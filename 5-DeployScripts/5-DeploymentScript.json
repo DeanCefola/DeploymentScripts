@@ -11,7 +11,7 @@
   },  
   "variables": {
     "STName": "[concat(parameters('Prefix'),'storage')]",
-    "IDName4": "[concat(parameters('Prefix'),'ID-4')]",    
+    "IDName5": "[concat(parameters('Prefix'),'ID-5')]",    
     "DSName5": "[concat(parameters('Prefix'),'DS-5')]",        
     "roleAssignmentName": "[guid(concat(resourceGroup().id, 'contributor'))]",
     "DSArgs5": "[concat('-Prefix ', parameters('Prefix'), ' -RGName ', resourceGroup().name)]",
@@ -39,7 +39,7 @@
     {
       "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
       "apiVersion": "2018-11-30",
-      "name": "[variables('IDName4')]",
+      "name": "[variables('IDName5')]",
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "COPY-ManagedID",
@@ -57,7 +57,7 @@
       },    
       "properties": {
           "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
-          "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName4')), '2018-11-30').principalId]",
+          "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName5')), '2018-11-30').principalId]",
           "scope": "[resourceGroup().id]",
           "principalType": "ServicePrincipal"
       },
@@ -78,7 +78,7 @@
       "identity": {
         "type": "UserAssigned",
         "userAssignedIdentities": {          
-         "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('IDName4'))]": {}
+         "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('IDName5'))]": {}
         }
       },      
       "properties": {
