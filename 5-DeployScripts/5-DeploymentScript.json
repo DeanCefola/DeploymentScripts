@@ -15,7 +15,7 @@
     "DSName5": "[concat(parameters('Prefix'),'DS-5')]",    
     "DSArgs5": "[concat('-Prefix ', parameters('Prefix'))]",
     "roleAssignmentName": "[guid(concat(resourceGroup().id, 'contributor'))]",
-    "DSScript5": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/Code/NewStorage.ps1"
+    "DSScript5": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/5-DeployScripts/5-NewFileShare.ps1"
   },
   "resources": [
     {
