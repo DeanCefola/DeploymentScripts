@@ -7,14 +7,22 @@
        "metadata": {
          "description": "Prefix for Azure Resources"
        }
+     },
+     "ForceUpdateValue": {
+       "type": "string",
+       "defaultValue": "[utcNow()]",
+       "metadata": {
+         "description": "Get Current time"
+       }
      }    
   },  
   "variables": {
     "STName": "[concat(parameters('Prefix'),'storage')]",
-    "IDName4": "[concat(parameters('Prefix'),'ID-4')]",    
-    "DSName7": "[concat(parameters('Prefix'),'DS-7')]",
-    "DSScript7": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/Code/NewStorage.ps1",
-    "DSArgs5": "[concat('-Prefix ', parameters('Prefix'))]"
+    "IDName7": "[concat(parameters('Prefix'),'ID-7')]",    
+    "DSName7": "[concat(parameters('Prefix'),'DS-7')]",        
+    "roleAssignmentName": "[guid(concat(resourceGroup().id, 'contributor'))]",
+    "DSArgs5": "[concat('-Prefix ', parameters('Prefix'), ' -RGName ', resourceGroup().name)]",
+    "DSScript5": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/5-DeployScripts/5-NewFileShare.ps1" 
   },
   "resources": [
     {
@@ -38,7 +46,7 @@
     {
       "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
       "apiVersion": "2018-11-30",
-      "name": "[variables('IDName4')]",
+      "name": "[variables('IDName7')]",
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "COPY-ManagedID",
@@ -49,10 +57,14 @@
     {
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2018-09-01-preview",
-      "name": "[variables('IDName4')]",    
+      "name": "[variables('roleAssignmentName')]",
+      "copy": {
+        "name": "COPY-IDRights",
+        "count": 1
+      },    
       "properties": {
           "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
-          "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName4')), '2015-08-31-preview').principalId]",
+          "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName7')), '2018-11-30').principalId]",
           "scope": "[resourceGroup().id]",
           "principalType": "ServicePrincipal"
       },
@@ -73,31 +85,54 @@
       "identity": {
         "type": "UserAssigned",
         "userAssignedIdentities": {          
-          "[resourceid('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName4'))]":{}
+         "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('IDName7'))]": {}
         }
       },      
       "properties": {
         "azPowerShellVersion": "5.0",        
         "timeout": "PT15M",
         "retentionInterval": "P1D",        
-        "cleanupPreference": "OnSuccess", 
+        "cleanupPreference": "OnSuccess",
+        "containerSettings": {
+          "containerGroupName": "[concat(variables('DSName7'),'-container')]"
+        }, 
         "storageAccountSettings": {
           "storageAccountName": "[variables('STName')]",
           "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('STName')), '2019-06-01').keys[0].value]"
-        }, 
-        "arguments": "[variables('DSArgs5')]",       
-        "primaryScriptUri": "[variables('DSScript7')]"
+        },        
+        "arguments": "[variables('DSArgs5')]",
+        "environmentVariables": [
+          {
+            "name": "location",
+            "value": "[resourceGroup().location]"
+          },
+          {
+            "name": "Stage",
+            "value": "Prod"
+          },
+          {
+            "name": "Password",
+            "secureValue": "this is the way"
+          },
+          {
+            "name": "ScriptPath",
+            "value": "[variables('DSScript5')]"
+          }
+        ],
+        "primaryScriptUri": "[variables('DSScript5')]",
+        "forceUpdateTag": "[parameters('ForceUpdateValue')]"
       },
       "dependsOn": [
         "COPY-Storage",
-        "COPY-ManagedID"
+        "COPY-ManagedID",
+        "COPY-IDRights"
       ]
     }   
   ],
   "outputs": {
-    "DS5-Output": {
+    "DS6-Output": {
       "type": "string",
-      "value": "[reference(variables('DSName5')).outputs.text]"
+       "value": "[reference(variables('DSName7')).outputs.text]"
     }
   }
 }
