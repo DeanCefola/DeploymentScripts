@@ -10,47 +10,19 @@
      }    
   },  
   "variables": {    
-    "DSName1":  "[concat(parameters('Prefix'),'DS-1')]",    
-    "DSArgs1":   "[concat('-Prefix ', parameters('Prefix'))]",
-    "DSName2":  "[concat(parameters('Prefix'),'DS-2')]",    
+    "DSName2":  "[concat(parameters('Prefix'),'DS-2')]"        
   },
-  "resources": [
-    {
-      "type": "Microsoft.resources/deploymentScripts",
-      "apiVersion": "2020-10-01",
-      "name": "[variables('DSName1')]",
-      "location": "[resourceGroup().location]",
-      "copy": {
-        "name": "COPY-DeployScript2",
-        "count": 1
-      },
-      "kind": "AzurePowerShell",            
-      "properties": {
-        "azPowerShellVersion": "5.0",        
-        "timeout": "PT15M",
-        "retentionInterval": "P1D",        
-        "cleanupPreference": "OnSuccess", 
-        "arguments": "[variables('DSArgs1')]",       
-        "scriptContent":"
-          $output = 'Hello World - Azure Deployment Script'
-          Write-Output $output
-          "
-      },
-      "dependsOn": [
-        
-      ]    
-    },
+  "resources": [    
     {
       "type": "Microsoft.Resources/deploymentScripts",
       "apiVersion": "2020-10-01",
       "name": "[variables('DSName2')]",
       "location": "[resourceGroup().location]",
       "kind": "AzurePowerShell",      
-      "properties": {
-        "forceUpdateTag": "1",            
-        "azPowerShellVersion": "3.0",
+      "properties": {                 
+        "azPowerShellVersion": "5.0",
         "supportingScriptUris":[],
-        "timeout": "PT30M",
+        "timeout": "PT15M",
         "cleanupPreference": "OnSuccess",
         "retentionInterval": "P1D",
         "arguments": "-name \\\"John Dole\\\"",
@@ -72,13 +44,9 @@
           $DeploymentScriptOutputs['text'] = $output
         "        
       }
-    },
+    }
   ],
-  "outputs": {    
-    "DS1-Output": {
-      "type": "string",
-      "value": "[reference(variables('DSName1')).outputs.text]"
-    },
+  "outputs": {        
     "DS2-Output": {
       "type": "string",
       "value": "[reference(variables('DSName2')).outputs.text]"
