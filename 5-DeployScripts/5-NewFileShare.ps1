@@ -17,22 +17,41 @@ Param (
         [Parameter(Mandatory=$true)]	
         [string]$RGName
 )	
-Begin {    	
+Begin {  
     $STName = $Prefix+"storage"
     $ShareName = 'share05'
-    $ErrorActionPreference = 'Stop'
 }	
 Process{	
     $STAccount = Get-AzStorageAccount `
         -ResourceGroupName $RGName `
-        -Name $STName	
-    New-AzStorageShare `
+        -Name $STName
+    $TestShare = Get-AzStorageShare `
         -Name $ShareName `
-        -Context $STAccount.Context 	
-    Set-AzStorageShareQuota `
         -Context $STAccount.Context `
-        -Quota 10 `
-        -ShareName $ShareName	
+        -ErrorAction SilentlyContinue
+    if ($TestShare -eq $null){
+        write-host "Creating Share"
+        New-AzStorageShare `
+            -Name $ShareName `
+            -Context $STAccount.Context 	
+        Set-AzStorageShareQuota `
+            -Context $STAccount.Context `
+            -Quota 10 `
+            -ShareName $ShareName	
+    }
+    else {
+        Write-Host "Share already exists, checking size"
+        if($Testshare.Quota -eq 10) {
+            Write-Host "Share is already the correct size"         
+        }
+        else {
+            Write-Host "Setting Share Quota"
+            Set-AzStorageShareQuota `
+                -Context $STAccount.Context `
+                -Quota 10 `
+                -ShareName $ShareName
+        }
+    }
 }	
 End {
     $Output = "Share $ShareName was created in storage account $STName in Resource Group $RGName"
