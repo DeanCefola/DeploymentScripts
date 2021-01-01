@@ -22,7 +22,7 @@
       "properties": {                 
         "azPowerShellVersion": "5.0",
         "supportingScriptUris":[],
-        "timeout": "PT15M",
+        "timeout": "PT10M",
         "cleanupPreference": "OnSuccess",
         "retentionInterval": "P1D",
         "arguments": "-name \\\"John Dole\\\"",
