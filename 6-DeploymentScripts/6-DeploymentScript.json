@@ -101,6 +101,24 @@
           "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('STName')), '2019-06-01').keys[0].value]"
         },        
         "arguments": "[variables('DSArgs5')]",
+        "environmentVariables": [
+          {
+            "name": "location",
+            "value": "[resourceGroup().location]"
+          },
+          {
+            "name": "Stage",
+            "value": "Prod"
+          },
+          {
+            "name": "Password",
+            "secureValue": "this is the way"
+          },
+          {
+            "name": "ScriptPath",
+            "value": "[variables('DSScript5')]"
+          }
+        ],
         "primaryScriptUri": "[variables('DSScript5')]",
         "forceUpdateTag": "[parameters('ForceUpdateValue')]"
       },
