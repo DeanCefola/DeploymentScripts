@@ -130,7 +130,7 @@
     }   
   ],
   "outputs": {
-    "DS5-Output": {
+    "DS6-Output": {
       "type": "string",
        "value": "[reference(variables('DSName6')).outputs.text]"
     }
