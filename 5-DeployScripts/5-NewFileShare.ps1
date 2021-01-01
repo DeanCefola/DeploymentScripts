@@ -36,4 +36,6 @@ Process{
 }	
 End {
     $Output = "Share $ShareName was created in storage account $STName in Resource Group $RGName" | Out-String
+    $DeploymentScriptOutputs = @{}
+    $DeploymentScriptOutputs['text'] = $output
 }	
