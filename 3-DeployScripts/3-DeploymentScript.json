@@ -12,7 +12,7 @@
   "variables": {
     "STName": "[concat(parameters('Prefix'),'storage')]",
     "DSName3": "[concat(parameters('Prefix'),'DS-3')]",    
-    "DSArgs3": "[concat('-Prefix ', parameters('Prefix'))]"
+    "DSArgs3": "[concat('-Prefix ', parameters('Prefix'), ' -STName ', variables('STName'))]"
   },
   "resources": [
     {
@@ -47,27 +47,29 @@
         "azPowerShellVersion": "5.0",        
         "timeout": "PT15M",
         "retentionInterval": "P1D",        
-        "cleanupPreference": "OnSuccess",
-        "containerSettings": {
-          "containerGroupName": "deploymentScripts"
-        },
+        "cleanupPreference": "OnSuccess",        
         "storageAccountSettings": {
           "storageAccountName": "[variables('STName')]",
           "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('STName')), '2019-06-01').keys[0].value]"
         }, 
-        "arguments": "[variables('DSArgs3')]",
-        "environmentVariables": [
-
-        ],    
+        "arguments": "[variables('DSArgs3')]",        
         "scriptContent":"
-          Param (
-            [Parameter(Mandatory=$true)]
-              [string]$Prefix
-          )
-            $output = 'Hello World - Azure Deployment Script'
-            Write-Output $output
-            $DeploymentScriptOutputs = @{}
-            $DeploymentScriptOutputs['text'] = $output        
+            Param (
+              [string]$Prefix,
+              [string]$STName
+            )
+            Begin {
+              write-host 'Hey there everyone...test #3 here'
+            }
+            Process {
+              $a = \"$Prefix-$STName\"
+            }
+            End { 
+              $output = \"$a\"
+              Write-Output $output
+              $DeploymentScriptOutputs = @{}
+              $DeploymentScriptOutputs['text'] = $output
+            }            
           "
       },
       "dependsOn": [
