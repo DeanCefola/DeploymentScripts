@@ -14,17 +14,24 @@
        "metadata": {
          "description": "Get Current time"
        }
+     },
+     "CertSubjectName": {
+       "type": "string",
+       "metadata": {
+         "description": "FQDN for Cert Subject Name"
+       }
      }    
   },  
   "variables": {
     "STName": "[concat(parameters('Prefix'),'storage')]",
+    "KVName": "[concat(parameters('Prefix'),'keyvault')]",
     "IDName7": "[concat(parameters('Prefix'),'ID-7')]",    
     "DSName7": "[concat(parameters('Prefix'),'DS-7')]",        
     "roleAssignmentName": "[guid(concat(resourceGroup().id, 'contributor'))]",
-    "DSArgs5": "[concat('-Prefix ', parameters('Prefix'), ' -RGName ', resourceGroup().name)]",
-    "DSScript5": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/5-DeployScripts/5-NewFileShare.ps1" 
+    "DSArgs7": "[concat('-vaultName ', variables('KVName'), ' -certificateName ', 'DSCert-7 ','-subjectName ', parameters('CertSubjectName'))]",
+    "DSScript7": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/7-DeployScripts/7-CreateCert.ps1" 
   },
-  "resources": [
+  "resources": [    
     {
       "name": "[variables('STName')]",
       "type": "Microsoft.Storage/storageAccounts",
@@ -73,6 +80,81 @@
       ]
     },
     {
+        "type": "Microsoft.KeyVault/vaults",
+        "apiVersion": "2016-10-01",
+        "name": "[variables('KVName')]",
+        "location": "[resourceGroup().location]",
+        "properties": {
+            "enabledForDeployment": true,
+            "enabledForDiskEncryption": true,
+            "enabledForTemplateDeployment": true,
+            "tenantId": "[subscription().tenantId]",
+            "accessPolicies": [
+                {                    
+                    "objectId": "[reference(concat(resourceId('Microsoft.ManagedIdentity/','userAssignedIdentities'), '2018-11-30').objectId)]",
+                    "tenantId": "[subscription().tenantId]",
+                    "permissions": {
+                        "keys":[
+                            "Get",
+                            "List",
+                            "Update",
+                            "Create",
+                            "Import",
+                            "Delete",
+                            "Recover",
+                            "Backup",
+                            "Restore"
+                        ],
+                        "secrets": [
+                            "Get",
+                            "List",
+                            "Set",
+                            "Delete",
+                            "Recover",
+                            "Backup",
+                            "Restore"
+                        ],
+                        "certificates": [
+                            "Get",
+                            "List",
+                            "Update",
+                            "Create",
+                            "Import",
+                            "Delete",
+                            "Recover",                            
+                            "ManageContacts",
+                            "ManageIssuers",
+                            "GetIssuers",
+                            "ListIssuers",
+                            "SetIssuers",
+                            "DeleteIssuers"
+                        ]
+                    }
+                }
+            ],
+            "sku": {
+                "name": "standard",
+                "family": "A"
+            },
+            "networkAcls": {
+                "defaultAction": "Allow",
+                "bypass": "AzureServices"
+            }
+        }
+    },
+    {
+        "type": "Microsoft.KeyVault/vaults/secrets",
+        "apiVersion": "2016-10-01",
+        "name": "[concat(variables('KVName'), '/', 'DeploymentSecret')]",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+            "[resourceId('Microsoft.KeyVault/vaults', variables('KVName'))]"
+        ],
+        "properties": {
+            "value": "all"
+        }
+    },
+    {
       "type": "Microsoft.resources/deploymentScripts",
       "apiVersion": "2020-10-01",
       "name": "[variables('DSName7')]",
@@ -100,26 +182,8 @@
           "storageAccountName": "[variables('STName')]",
           "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('STName')), '2019-06-01').keys[0].value]"
         },        
-        "arguments": "[variables('DSArgs5')]",
-        "environmentVariables": [
-          {
-            "name": "location",
-            "value": "[resourceGroup().location]"
-          },
-          {
-            "name": "Stage",
-            "value": "Prod"
-          },
-          {
-            "name": "Password",
-            "secureValue": "this is the way"
-          },
-          {
-            "name": "ScriptPath",
-            "value": "[variables('DSScript5')]"
-          }
-        ],
-        "primaryScriptUri": "[variables('DSScript5')]",
+        "arguments": "[variables('DSArgs7')]",        
+        "primaryScriptUri": "[variables('DSScript7')]",
         "forceUpdateTag": "[parameters('ForceUpdateValue')]"
       },
       "dependsOn": [
