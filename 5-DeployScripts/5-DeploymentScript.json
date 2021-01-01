@@ -12,9 +12,9 @@
   "variables": {
     "STName": "[concat(parameters('Prefix'),'storage')]",
     "IDName4": "[concat(parameters('Prefix'),'ID-4')]",    
-    "DSName5": "[concat(parameters('Prefix'),'DS-5')]",    
-    "DSArgs5": "[concat('-Prefix ', parameters('Prefix'))]",
+    "DSName5": "[concat(parameters('Prefix'),'DS-5')]",        
     "roleAssignmentName": "[guid(concat(resourceGroup().id, 'contributor'))]",
+    "DSArgs5": "[concat('-Prefix ', parameters('Prefix'), ' -RGName ', resourceGroup().name)]",
     "DSScript5": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/5-DeployScripts/5-NewFileShare.ps1"
   },
   "resources": [
@@ -50,10 +50,14 @@
     {
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2018-09-01-preview",
-      "name": "[variables('roleAssignmentName')]",    
+      "name": "[variables('roleAssignmentName')]",
+      "copy": {
+        "name": "COPY-IDRights",
+        "count": 1
+      },    
       "properties": {
           "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
-          "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName4')), '2015-08-31-preview').principalId]",
+          "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName4')), '2018-11-30').principalId]",
           "scope": "[resourceGroup().id]",
           "principalType": "ServicePrincipal"
       },
@@ -74,24 +78,28 @@
       "identity": {
         "type": "UserAssigned",
         "userAssignedIdentities": {          
-          "[resourceid('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName4'))]":{}
+         "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('IDName4'))]": {}
         }
       },      
       "properties": {
         "azPowerShellVersion": "5.0",        
         "timeout": "PT15M",
         "retentionInterval": "P1D",        
-        "cleanupPreference": "OnSuccess", 
+        "cleanupPreference": "OnSuccess",
+        "containerSettings": {
+          "containerGroupName": "[concat(variables('DSName5'),'-container')]"
+        }, 
         "storageAccountSettings": {
           "storageAccountName": "[variables('STName')]",
           "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('STName')), '2019-06-01').keys[0].value]"
-        }, 
-        "arguments": "[variables('DSArgs5')]",       
+        },
+        "arguments": "[variables('DSArgs5')]",
         "primaryScriptUri": "[variables('DSScript5')]"
       },
       "dependsOn": [
         "COPY-Storage",
-        "COPY-ManagedID"
+        "COPY-ManagedID",
+        "COPY-IDRights"
       ]
     }   
   ],
