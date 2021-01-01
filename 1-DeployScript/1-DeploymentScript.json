@@ -11,7 +11,7 @@
   },  
   "variables": {    
     "DSName1": "[concat(parameters('Prefix'),'DS-1')]",       
-    "DSArgs1": "[concat('-Prefix ', parameters('Prefix'))]"    
+    "DSArgs1": "[parameters('Prefix')]"    
   },
   "resources": [    
     {
@@ -20,7 +20,7 @@
       "name": "[variables('DSName1')]",
       "location": "[resourceGroup().location]",
       "copy": {
-        "name": "COPY-DeployScript2",
+        "name": "COPY-DeployScript1",
         "count": 1
       },
       "kind": "AzurePowerShell",            
@@ -31,7 +31,10 @@
         "cleanupPreference": "OnSuccess", 
         "arguments": "[variables('DSArgs1')]",       
         "scriptContent":"
-          $output = 'Hello World - Azure Deployment Script'
+          Param([string]$Prefix)
+          $output = \"$Prefix\"
+          $DeploymentScriptOutputs = @{}
+          $DeploymentScriptOutputs['text'] = $output            
           Write-Output $output
         "
       },
