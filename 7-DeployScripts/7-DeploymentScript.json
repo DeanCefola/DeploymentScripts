@@ -91,7 +91,7 @@
             "tenantId": "[subscription().tenantId]",
             "accessPolicies": [
                 {                    
-                    "objectId": "[reference(concat(resourceId('Microsoft.ManagedIdentity/','userAssignedIdentities'), '2018-11-30').objectId)]",
+                    "objectId": "[reference(variables('IDName7'), '2018-11-30').objectId]",
                     "tenantId": "[subscription().tenantId]",
                     "permissions": {
                         "keys":[
