@@ -29,9 +29,9 @@
     "DSName7a": "[concat(parameters('Prefix'),'DS-7-a')]",
     "DSName7b": "[concat(parameters('Prefix'),'DS-7-b')]",
     "roleAssignmentName": "[guid(concat(resourceGroup().id, 'contributor'))]",
-    "DSArgs7a": "[concat('-vaultName ', variables('KVName'), ' -certificateName ', 'DSCert-7 ','-subjectName ', parameters('CertSubjectName'))]",
+    "DSArgs7a": "[parameters('Prefix')]",
     "DSArgs7b": "[concat('-vaultName ', variables('KVName'), ' -certificateName ', 'DSCert-7 ','-subjectName ', parameters('CertSubjectName'))]",
-    "DSScript7a": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/7-DeployScripts/7-CreateCert.ps1",
+    "DSScript7a": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/7-DeployScripts/7-ManagedIDInfo.ps1",
     "DSScript7b": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/7-DeployScripts/7-CreateCert.ps1" 
   },
   "resources": [    
@@ -88,7 +88,7 @@
       "name": "[variables('DSName7a')]",
       "location": "[resourceGroup().location]",
       "copy": {
-        "name": "COPY-DeployScript2",
+        "name": "COPY-DeployScript7a",
         "count": 1
       },
       "kind": "AzurePowerShell",
@@ -136,7 +136,8 @@
         "tenantId": "[subscription().tenantId]",
         "accessPolicies": [
           {                    
-            "objectId": "[reference(variables('IDName7'), '2018-11-30').objectId]",
+            "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName7')), '2018-11-30').principalId]",
+            //"objectId": "[reference(variables('DSName7a')).outputs.ManagedIDObject]",
             "tenantId": "[subscription().tenantId]",
             "permissions": {
                 "keys":[
@@ -185,7 +186,10 @@
           "defaultAction": "Allow",
           "bypass": "AzureServices"
         }
-      }
+      },
+      "dependsOn": [
+        "COPY-DeployScript7a"
+      ]
     },
     {
       "type": "Microsoft.KeyVault/vaults/secrets",
@@ -209,7 +213,7 @@
       "name": "[variables('DSName7b')]",
       "location": "[resourceGroup().location]",
       "copy": {
-        "name": "COPY-DeployScript2",
+        "name": "COPY-DeployScript7b",
         "count": 1
       },
       "kind": "AzurePowerShell",
@@ -236,16 +240,18 @@
         "forceUpdateTag": "[parameters('ForceUpdateValue')]"
       },
       "dependsOn": [
-        "COPY-Storage",
-        "COPY-ManagedID",
-        "COPY-IDRights"
+        "COPY-KVSecret"
       ]
     }   
   ],
   "outputs": {
-    "DS7-Output": {
+    "DS7a-Output": {
       "type": "string",
-       "value": "[reference(variables('DSName7b')).outputs.text]"
+      "value": "[reference(variables('DSName7a')).outputs.ManagedIDObject]"
+    },
+    "DS7b-Output": {
+      "type": "string",
+       "value": "[reference(variables('DSName7b')).outputs.certThumbprint]"
     }
   }
 }
