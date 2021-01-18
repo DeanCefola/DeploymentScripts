@@ -32,7 +32,7 @@
     "DSArgs7a": "[parameters('Prefix')]",
     "DSArgs7b": "[concat('-vaultName ', variables('KVName'), ' -certificateName ', 'DSCert-7 ','-subjectName ', parameters('CertSubjectName'))]",
     "DSScript7a": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/7-DeployScripts/7-ManagedIDInfo.ps1",
-    "DSScript7b": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/7-DeployScripts/7-CreateCert.ps1" 
+    
   },
   "resources": [    
     {
