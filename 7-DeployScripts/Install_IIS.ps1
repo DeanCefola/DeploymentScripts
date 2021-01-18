@@ -29,5 +29,5 @@ End {
   $Value = (Get-WindowsFeature -Name Web-Server).installstate
   $Output = Write-Host "IIS is $Value"
   $DeploymentScriptOutputs = @{}
-  $DeploymentScriptOutputs['text'] = $output
+  $DeploymentScriptOutputs['IIS'] = $output
 }
