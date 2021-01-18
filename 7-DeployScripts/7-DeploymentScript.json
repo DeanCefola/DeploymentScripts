@@ -14,24 +14,14 @@
        "metadata": {
          "description": "Get Current time"
        }
-     },
-     "CertSubjectName": {
-       "type": "string",
-       "metadata": {
-         "description": "FQDN for Cert Subject Name"
-       }
      }    
   },  
   "variables": {
-    "STName": "[concat(parameters('Prefix'),'storage')]",
-    "KVName": "[concat(parameters('Prefix'),'keyvault')]",
+    "STName": "[concat(parameters('Prefix'),'storage')]",    
     "IDName7": "[concat(parameters('Prefix'),'ID-7')]",    
-    "DSName7a": "[concat(parameters('Prefix'),'DS-7-a')]",
-    "DSName7b": "[concat(parameters('Prefix'),'DS-7-b')]",
-    "roleAssignmentName": "[guid(concat(resourceGroup().id, 'contributor'))]",
-    "DSArgs7a": "[parameters('Prefix')]",
-    "DSArgs7b": "[concat('-vaultName ', variables('KVName'), ' -certificateName ', 'DSCert-7 ','-subjectName ', parameters('CertSubjectName'))]",
-    "DSScript7a": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/7-DeployScripts/7-ManagedIDInfo.ps1",
+    "DSName7a": "[concat(parameters('Prefix'),'DS-7-a')]",    
+    "roleAssignmentName": "[guid(concat(resourceGroup().id, 'contributor'))]",    
+    "DSScript7a": "https://raw.githubusercontent.com/DeanCefola/DeploymentScripts/main/7-DeployScripts/Install_IIS.ps1"
     
   },
   "resources": [    
@@ -109,8 +99,7 @@
         "storageAccountSettings": {
           "storageAccountName": "[variables('STName')]",
           "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('STName')), '2019-06-01').keys[0].value]"
-        },        
-        "arguments": "[variables('DSArgs7a')]",        
+        },
         "primaryScriptUri": "[variables('DSScript7a')]",
         "forceUpdateTag": "[parameters('ForceUpdateValue')]"
       },
@@ -119,130 +108,7 @@
         "COPY-ManagedID",
         "COPY-IDRights"
       ]
-    },
-    {
-      "type": "Microsoft.KeyVault/vaults",
-      "apiVersion": "2016-10-01",
-      "name": "[variables('KVName')]",
-      "location": "[resourceGroup().location]",
-      "copy": {
-        "name": "COPY-KeyVault",
-        "count": 1
-      },
-      "properties": {
-        "enabledForDeployment": true,
-        "enabledForDiskEncryption": true,
-        "enabledForTemplateDeployment": true,
-        "tenantId": "[subscription().tenantId]",
-        "accessPolicies": [
-          {                    
-            "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('IDName7')), '2018-11-30').principalId]",
-            //"objectId": "[reference(variables('DSName7a')).outputs.ManagedIDObject]",
-            "tenantId": "[subscription().tenantId]",
-            "permissions": {
-                "keys":[
-                    "Get",
-                    "List",
-                    "Update",
-                    "Create",
-                    "Import",
-                    "Delete",
-                    "Recover",
-                    "Backup",
-                    "Restore"
-                ],
-                "secrets": [
-                    "Get",
-                    "List",
-                    "Set",
-                    "Delete",
-                    "Recover",
-                    "Backup",
-                    "Restore"
-                ],
-                "certificates": [
-                    "Get",
-                    "List",
-                    "Update",
-                    "Create",
-                    "Import",
-                    "Delete",
-                    "Recover",                            
-                    "ManageContacts",
-                    "ManageIssuers",
-                    "GetIssuers",
-                    "ListIssuers",
-                    "SetIssuers",
-                    "DeleteIssuers"
-                ]
-            }
-          }
-        ],
-        "sku": {
-          "name": "standard",
-          "family": "A"
-        },
-        "networkAcls": {
-          "defaultAction": "Allow",
-          "bypass": "AzureServices"
-        }
-      },
-      "dependsOn": [
-        "COPY-DeployScript7a"
-      ]
-    },
-    {
-      "type": "Microsoft.KeyVault/vaults/secrets",
-      "apiVersion": "2016-10-01",
-      "name": "[concat(variables('KVName'), '/', 'DeploymentSecret')]",
-      "location": "[resourceGroup().location]",
-      "copy": {
-        "name": "COPY-KVSecret",
-        "count": 1
-      },
-      "properties": {
-        "value": "all"
-      },        
-      "dependsOn": [
-        "COPY-KeyVault"
-      ]
-    },
-    {
-      "type": "Microsoft.resources/deploymentScripts",
-      "apiVersion": "2020-10-01",
-      "name": "[variables('DSName7b')]",
-      "location": "[resourceGroup().location]",
-      "copy": {
-        "name": "COPY-DeployScript7b",
-        "count": 1
-      },
-      "kind": "AzurePowerShell",
-      "identity": {
-        "type": "UserAssigned",
-        "userAssignedIdentities": {          
-         "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('IDName7'))]": {}
-        }
-      },      
-      "properties": {
-        "azPowerShellVersion": "5.0",        
-        "timeout": "PT15M",
-        "retentionInterval": "P1D",        
-        "cleanupPreference": "OnSuccess",
-        "containerSettings": {
-          "containerGroupName": "[concat(variables('DSName7b'),'-container')]"
-        }, 
-        "storageAccountSettings": {
-          "storageAccountName": "[variables('STName')]",
-          "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('STName')), '2019-06-01').keys[0].value]"
-        },        
-        "arguments": "[variables('DSArgs7b')]",        
-        "primaryScriptUri": "[variables('DSScript7b')]",
-        "forceUpdateTag": "[parameters('ForceUpdateValue')]"
-      },
-      "dependsOn": [
-        "COPY-KVSecret"
-      ]
-    }   
+    }    
   ],
   "outputs": {
     "DS7a-Output": {
